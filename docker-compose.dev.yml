@@ -1,0 +1,50 @@
+## Development override — mounts source code for hot reload
+## Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+##
+## This keeps postgres + redis in containers but runs api + web on your host
+## machine with pnpm dev (hot reload). Much faster for active development.
+
+name: virtual-bookshelf
+
+services:
+
+  # Override api: don't build image, just expose ports for host process
+  api:
+    build: !reset null
+    image: !reset null
+    command: !reset null
+    volumes:
+      - .:/app
+      - /app/node_modules
+    working_dir: /app
+    entrypoint: []
+    command: pnpm --filter api dev
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://vb_user:${POSTGRES_PASSWORD:-vb_password}@localhost:5432/virtual_bookshelf
+      REDIS_URL: redis://:${REDIS_PASSWORD:-vb_redis_password}@localhost:6379
+    network_mode: host   # so host pnpm dev processes can reach postgres/redis on localhost
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Override web: don't build image, just run vite dev server on host
+  web:
+    build: !reset null
+    image: !reset null
+    command: !reset null
+    volumes:
+      - .:/app
+      - /app/node_modules
+    working_dir: /app
+    entrypoint: []
+    command: pnpm --filter web dev
+    network_mode: host
+    depends_on: {}
+
+  # Don't run stripe-cli in dev override (use host stripe CLI instead)
+  stripe-cli:
+    profiles:
+      - disabled

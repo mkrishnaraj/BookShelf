@@ -1,0 +1,170 @@
+name: virtual-bookshelf
+
+services:
+
+  # ── PostgreSQL ─────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: vb-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: virtual_bookshelf
+      POSTGRES_USER: vb_user
+      POSTGRES_PASSWORD: vb_password   # override in .env.docker
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"   # exposed so you can connect with a DB GUI (TablePlus, etc.)
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vb_user -d virtual_bookshelf"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Redis ──────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: vb-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-vb_redis_password}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-vb_redis_password}", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Database migrations ────────────────────────────────────────
+  # Runs once on startup, applies any pending Prisma migrations, then exits
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: builder          # use builder stage (has dev tools + prisma CLI)
+    container_name: vb-migrate
+    command: >
+      sh -c "
+        echo 'Waiting for postgres...' &&
+        until pg_isready -h postgres -U vb_user -d virtual_bookshelf; do sleep 1; done &&
+        echo 'Running migrations...' &&
+        pnpm --filter db migrate:deploy &&
+        echo 'Seeding database...' &&
+        pnpm --filter db seed &&
+        echo 'Migrations complete.'
+      "
+    environment:
+      DATABASE_URL: postgresql://vb_user:${POSTGRES_PASSWORD:-vb_password}@postgres:5432/virtual_bookshelf
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"   # run once and exit
+
+  # ── Express API ────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: vb-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+
+      # Database
+      DATABASE_URL: postgresql://vb_user:${POSTGRES_PASSWORD:-vb_password}@postgres:5432/virtual_bookshelf
+
+      # Redis
+      REDIS_URL: redis://:${REDIS_PASSWORD:-vb_redis_password}@redis:6379
+
+      # Auth
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
+
+      # Stripe subscriptions
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      STRIPE_CONNECT_WEBHOOK_SECRET: ${STRIPE_CONNECT_WEBHOOK_SECRET}
+      STRIPE_READER_MONTHLY_PRICE_ID: ${STRIPE_READER_MONTHLY_PRICE_ID}
+      STRIPE_READER_ANNUAL_PRICE_ID: ${STRIPE_READER_ANNUAL_PRICE_ID}
+      STRIPE_COLLECTOR_MONTHLY_PRICE_ID: ${STRIPE_COLLECTOR_MONTHLY_PRICE_ID}
+      STRIPE_COLLECTOR_ANNUAL_PRICE_ID: ${STRIPE_COLLECTOR_ANNUAL_PRICE_ID}
+      STRIPE_BIBLIOPHILE_MONTHLY_PRICE_ID: ${STRIPE_BIBLIOPHILE_MONTHLY_PRICE_ID}
+      STRIPE_BIBLIOPHILE_ANNUAL_PRICE_ID: ${STRIPE_BIBLIOPHILE_ANNUAL_PRICE_ID}
+
+      # Marketplace commission rates
+      MARKETPLACE_FEE_READER: ${MARKETPLACE_FEE_READER:-15}
+      MARKETPLACE_FEE_COLLECTOR: ${MARKETPLACE_FEE_COLLECTOR:-12}
+      MARKETPLACE_FEE_BIBLIOPHILE: ${MARKETPLACE_FEE_BIBLIOPHILE:-10}
+
+      # AI enrichment
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      GOOGLE_BOOKS_API_KEY: ${GOOGLE_BOOKS_API_KEY}
+
+      # Storage
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+
+      # App URLs (used in redirect URLs and CORS)
+      WEB_URL: http://localhost:80
+      API_URL: http://localhost:3001
+
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3001/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # ── React PWA (nginx) ──────────────────────────────────────────
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_API_URL: ""           # empty = use nginx proxy (recommended for local)
+        VITE_CLERK_PUBLISHABLE_KEY: ${VITE_CLERK_PUBLISHABLE_KEY}
+    container_name: vb-web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      api:
+        condition: service_healthy
+
+  # ── Stripe CLI (webhook forwarding) ───────────────────────────
+  # Forwards Stripe events to your local API during development
+  # Remove this service when deploying to production
+  stripe-cli:
+    image: stripe/stripe-cli:latest
+    container_name: vb-stripe-cli
+    command: >
+      listen
+      --api-key ${STRIPE_SECRET_KEY}
+      --forward-to http://api:3001/api/v1/webhooks/stripe
+      --forward-connect-to http://api:3001/api/v1/webhooks/stripe
+    environment:
+      STRIPE_API_KEY: ${STRIPE_SECRET_KEY}
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    profiles:
+      - dev   # only starts with: docker compose --profile dev up
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local

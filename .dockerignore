@@ -1,0 +1,40 @@
+# Dependencies — reinstalled inside container
+node_modules
+**/node_modules
+
+# Build output — rebuilt inside container
+**/dist
+**/.next
+**/build
+
+# Git
+.git
+.gitignore
+
+# Docker files themselves
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Dev / editor files
+.env*
+!.env.docker.example
+*.log
+.DS_Store
+.vscode
+.idea
+*.swp
+
+# Test output
+coverage
+**/coverage
+playwright-report
+test-results
+
+# Docs (not needed in runtime image)
+docs/
+*.md
+!apps/api/README.md
+
+# CI
+.github
