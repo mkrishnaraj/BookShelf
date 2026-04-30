@@ -150,3 +150,22 @@ These are **build-time** args (set under **Variables** in the frontend service):
 - [ ] Update `WEB_URL` in the API service to `https://yourdomain.com`
 - [ ] In Clerk dashboard → **Allowed Origins**: add `https://yourdomain.com`
 - [ ] In Clerk dashboard → **Redirect URLs**: add `https://yourdomain.com`
+
+---
+
+## Migrating Frontend to Vercel (future, no code changes needed)
+
+`vercel.json` is already in the repo. When you're ready to switch:
+
+1. Go to vercel.com → **Add New Project** → import the GitHub repo
+2. Set these env vars in the Vercel dashboard:
+   | Variable | Value |
+   |----------|-------|
+   | `VITE_API_URL` | Your Railway API URL, e.g. `https://api.yourdomain.com` |
+   | `VITE_CLERK_PUBLISHABLE_KEY` | From Clerk dashboard → API Keys |
+3. In Spaceship DNS: change the `@` CNAME to point to `cname.vercel-dns.com` (remove the old Railway CNAME)
+4. Add your domain in Vercel → project → **Settings** → **Domains**
+5. Update `WEB_URL` in your Railway API service to `https://yourdomain.com`
+6. Update Clerk → **Allowed Origins** and **Redirect URLs** to `https://yourdomain.com`
+
+SSL and CDN are provisioned automatically by Vercel. No code changes required.
