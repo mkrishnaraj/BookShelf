@@ -1,0 +1,16 @@
+{
+  "name": "Virtual Bookshelf",
+  "short_name": "Bookshelf",
+  "description": "Display and manage your book collection as a beautiful 3D bookshelf",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#8B5E3C",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "categories": ["books", "education", "lifestyle"],
+  "screenshots": []
+}

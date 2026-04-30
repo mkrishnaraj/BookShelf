@@ -1,0 +1,20 @@
+{
+  "name": "virtual-bookshelf",
+  "version": "1.0.0",
+  "private": true,
+  "packageManager": "pnpm@9.0.0",
+  "scripts": {
+    "dev": "concurrently \"pnpm --filter api dev\" \"pnpm --filter web dev\"",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "lint": "pnpm -r lint",
+    "db:migrate": "pnpm --filter db migrate",
+    "db:seed": "pnpm --filter db seed",
+    "db:studio": "pnpm --filter db studio",
+    "db:generate": "pnpm --filter db generate"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "typescript": "^5.3.3"
+  }
+}

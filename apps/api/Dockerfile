@@ -1,8 +1,8 @@
 # ── Stage 1: Build ──────────────────────────────────────────────
 FROM node:20-alpine AS builder
 
-# Install pnpm
-RUN npm install -g pnpm@9
+RUN npm install -g pnpm@9 && \
+    apk add --no-cache openssl openssl-dev libc6-compat
 
 WORKDIR /app
 
@@ -14,7 +14,7 @@ COPY packages/shared/package.json ./packages/shared/
 COPY packages/ai/package.json ./packages/ai/
 
 # Install all dependencies
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --no-frozen-lockfile
 
 # Copy source files
 COPY apps/api ./apps/api
@@ -24,6 +24,11 @@ COPY tsconfig.base.json ./
 # Generate Prisma client
 RUN pnpm --filter db generate
 
+# Build packages in dependency order
+RUN pnpm --filter shared build
+RUN pnpm --filter db build
+RUN pnpm --filter ai build
+
 # Build the API
 RUN pnpm --filter api build
 
@@ -31,9 +36,8 @@ RUN pnpm --filter api build
 FROM node:20-alpine AS runtime
 
 RUN npm install -g pnpm@9
-
+RUN apk add --no-cache dumb-init openssl libc6-compat
 # Install dumb-init for proper signal handling in containers
-RUN apk add --no-cache dumb-init
 
 WORKDIR /app
 
@@ -45,7 +49,7 @@ COPY packages/shared/package.json ./packages/shared/
 COPY packages/ai/package.json ./packages/ai/
 
 # Install production dependencies only
-RUN pnpm install --frozen-lockfile --prod
+RUN pnpm install --no-frozen-lockfile --prod
 
 # Copy built output from builder
 COPY --from=builder /app/apps/api/dist ./apps/api/dist

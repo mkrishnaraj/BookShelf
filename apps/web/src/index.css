@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --shelf-dark: #1a1a2e;
+  --shelf-accent: #e94560;
+}
+
+body {
+  margin: 0;
+  background-color: var(--shelf-dark);
+  color: #e2e8f0;
+  font-family: system-ui, -apple-system, sans-serif;
+}

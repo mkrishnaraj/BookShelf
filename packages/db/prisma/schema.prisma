@@ -1,0 +1,371 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum Plan {
+  FREE
+  READER
+  COLLECTOR
+  BIBLIOPHILE
+}
+
+enum ShelfSize {
+  S
+  M
+  L
+  XL
+}
+
+enum ShelfTheme {
+  DARK_WOOD
+  LIGHT_OAK
+  WHITE_MINIMALIST
+  VINTAGE
+}
+
+enum BookSource {
+  MANUAL
+  GOODREADS
+  GOOGLE_BOOKS
+  KINDLE
+  GOOGLE_PLAY
+  KOBO
+  IBOOKS
+  EPUB
+  PDF
+  CAMERA_SCAN
+}
+
+enum ReadingStatus {
+  WANT_TO_READ
+  READING
+  READ
+  DID_NOT_FINISH
+}
+
+enum BookCondition {
+  NEW
+  LIKE_NEW
+  GOOD
+  FAIR
+  POOR
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum ScanStatus {
+  PENDING
+  PROCESSING
+  COMPLETE
+  FAILED
+}
+
+// ─── Models ───────────────────────────────────────────────────────────────────
+
+model User {
+  id                   String    @id @default(cuid())
+  clerkId              String    @unique
+  email                String    @unique
+  name                 String?
+  avatarUrl            String?
+  plan                 Plan      @default(FREE)
+  stripeCustomerId     String?   @unique
+  stripeSubscriptionId String?   @unique
+  subscriptionStatus   String?
+  trialEndsAt          DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  shelves       Shelf[]
+  books         Book[]
+  streaks       ReadingStreak?
+  sessions      ReadingSession[]
+  notebook      Notebook?
+  wishlist      WishlistItem[]
+  scans         BookScan[]
+  sellerAccount SellerAccount?
+  buyerOrders   Order[]         @relation("BuyerOrders")
+  bookNotes     BookNote[]
+
+  @@map("users")
+}
+
+model Shelf {
+  id          String     @id @default(cuid())
+  userId      String
+  name        String
+  size        ShelfSize  @default(S)
+  theme       ShelfTheme @default(DARK_WOOD)
+  sortOrder   Int        @default(0)
+  isPublic    Boolean    @default(false)
+  publicSlug  String?    @unique
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  books Book[]
+
+  @@index([userId])
+  @@index([publicSlug])
+  @@map("shelves")
+}
+
+model Book {
+  id              String        @id @default(cuid())
+  userId          String
+  shelfId         String?
+  title           String
+  author          String
+  isbn            String?
+  pageCount       Int?
+  coverUrl        String?
+  publisher       String?
+  publishedYear   Int?
+  description     String?
+  genre           String?
+  language        String        @default("en")
+  source          BookSource    @default(MANUAL)
+  status          ReadingStatus @default(WANT_TO_READ)
+  rating          Int?
+  percentRead     Int           @default(0)
+  startedAt       DateTime?
+  finishedAt      DateTime?
+  spineColor      String?
+  spineWidthMm    Float?
+  heightMm        Float?
+  depthMm         Float?
+  positionOnShelf Int?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shelf    Shelf?           @relation(fields: [shelfId], references: [id], onDelete: SetNull)
+  notes    BookNote[]
+  sessions ReadingSession[]
+  notebookEntries NotebookEntry[]
+  dictionaryWords DictionaryWord[]
+
+  @@index([userId])
+  @@index([shelfId])
+  @@index([isbn])
+  @@index([author])
+  @@map("books")
+}
+
+model BookNote {
+  id         String   @id @default(cuid())
+  bookId     String
+  userId     String
+  content    String
+  pageNumber Int?
+  highlight  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([bookId])
+  @@index([userId])
+  @@map("book_notes")
+}
+
+model Notebook {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entries NotebookEntry[]
+  words   DictionaryWord[]
+
+  @@map("notebooks")
+}
+
+model NotebookEntry {
+  id         String   @id @default(cuid())
+  notebookId String
+  bookId     String?
+  content    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  notebook Notebook @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+  book     Book?    @relation(fields: [bookId], references: [id], onDelete: SetNull)
+
+  @@index([notebookId])
+  @@index([bookId])
+  @@map("notebook_entries")
+}
+
+model DictionaryWord {
+  id         String   @id @default(cuid())
+  notebookId String
+  word       String
+  definition String
+  bookId     String?
+  pageNumber Int?
+  createdAt  DateTime @default(now())
+
+  notebook Notebook @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+  book     Book?    @relation(fields: [bookId], references: [id], onDelete: SetNull)
+
+  @@unique([notebookId, word])
+  @@index([notebookId])
+  @@map("dictionary_words")
+}
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  author    String?
+  isbn      String?
+  coverUrl  String?
+  notes     String?
+  priority  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("wishlist_items")
+}
+
+model ReadingStreak {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  currentStreak Int       @default(0)
+  longestStreak Int       @default(0)
+  lastReadDate  DateTime?
+  totalDaysRead Int       @default(0)
+  updatedAt     DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("reading_streaks")
+}
+
+model ReadingSession {
+  id         String    @id @default(cuid())
+  userId     String
+  bookId     String
+  startedAt  DateTime
+  endedAt    DateTime?
+  pagesRead  Int?
+  notes      String?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([bookId])
+  @@index([startedAt])
+  @@map("reading_sessions")
+}
+
+model BookScan {
+  id              String     @id @default(cuid())
+  userId          String
+  imageUrl        String
+  detectedBooks   Json
+  confirmedBooks  Json       @default("[]")
+  status          ScanStatus @default(PENDING)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("book_scans")
+}
+
+model SellerAccount {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  stripeConnectId    String   @unique
+  onboardingComplete Boolean  @default(false)
+  totalEarnings      Decimal  @default(0) @db.Decimal(10, 2)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listings Listing[]
+  orders   Order[]   @relation("SellerOrders")
+
+  @@map("seller_accounts")
+}
+
+model Listing {
+  id          String        @id @default(cuid())
+  sellerId    String
+  bookTitle   String
+  bookAuthor  String
+  isbn        String?
+  condition   BookCondition
+  price       Decimal       @db.Decimal(10, 2)
+  coverUrl    String?
+  description String?
+  isActive    Boolean       @default(true)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  seller SellerAccount @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  orders Order[]
+
+  @@index([sellerId])
+  @@index([isActive])
+  @@map("listings")
+}
+
+model Order {
+  id                    String      @id @default(cuid())
+  listingId             String
+  buyerId               String
+  sellerId              String
+  amount                Decimal     @db.Decimal(10, 2)
+  platformFee           Decimal     @db.Decimal(10, 2)
+  stripePaymentIntentId String      @unique
+  status                OrderStatus @default(PENDING)
+  shippingAddress       Json
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+
+  listing Listing       @relation(fields: [listingId], references: [id])
+  buyer   User          @relation("BuyerOrders", fields: [buyerId], references: [id])
+  seller  SellerAccount @relation("SellerOrders", fields: [sellerId], references: [id])
+
+  @@index([listingId])
+  @@index([buyerId])
+  @@index([sellerId])
+  @@map("orders")
+}
+
+model Feedback {
+  id        String   @id @default(cuid())
+  userId    String?
+  rating    Int
+  message   String
+  page      String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@map("feedback")
+}

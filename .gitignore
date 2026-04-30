@@ -19,6 +19,7 @@ out/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 
 # Editor swap/temp files
 *.swp
@@ -35,3 +36,10 @@ mnt/
 # Tool directories
 .opencode/
 .sixth/
+
+# Prisma generated
+packages/db/node_modules/
+
+# Test coverage
+coverage/
+.nyc_output/

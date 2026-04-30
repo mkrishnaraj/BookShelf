@@ -1,0 +1,31 @@
+{
+  "version": 2,
+  "buildCommand": "pnpm --filter web build",
+  "outputDirectory": "apps/web/dist",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "framework": null,
+  "rewrites": [
+    { "source": "/((?!api/.*).*)", "destination": "/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-XSS-Protection", "value": "1; mode=block" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+      ]
+    }
+  ],
+  "env": {
+    "VITE_API_URL": "@api-url",
+    "VITE_CLERK_PUBLISHABLE_KEY": "@clerk-publishable-key"
+  }
+}
