@@ -40,6 +40,88 @@ railway run pnpm db:migrate:deploy   # run migrations
 2. Enable these Stripe events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`, `account.updated`
 3. Copy the webhook signing secret to `STRIPE_WEBHOOK_SECRET` env var
 
+## Railway Setup Checklist
+
+### Step 1 — Create a New Project
+- [ ] Go to railway.app → **New Project** → **Deploy from GitHub repo**
+- [ ] Connect GitHub and select the `BookShelf` repository
+
+### Step 2 — Add PostgreSQL
+- [ ] Inside the project → **+ New** → **Database** → **Add PostgreSQL**
+- [ ] `DATABASE_URL` is set automatically — do not add it manually
+
+### Step 3 — Set Environment Variables
+Go to your service → **Variables** tab and add all of the following:
+
+**Auth**
+| Variable | Where to get it |
+|----------|----------------|
+| `CLERK_SECRET_KEY` | Clerk dashboard → API Keys |
+
+**Stripe**
+| Variable | Where to get it |
+|----------|----------------|
+| `STRIPE_SECRET_KEY` | Stripe → Developers → API keys |
+| `STRIPE_WEBHOOK_SECRET` | Set after Step 5 |
+| `STRIPE_CONNECT_WEBHOOK_SECRET` | Set after Step 5 |
+| `STRIPE_READER_MONTHLY_PRICE_ID` | Stripe → Products → Reader → monthly price ID |
+| `STRIPE_READER_ANNUAL_PRICE_ID` | Stripe → Products → Reader → annual price ID |
+| `STRIPE_COLLECTOR_MONTHLY_PRICE_ID` | Stripe → Products → Collector → monthly price ID |
+| `STRIPE_COLLECTOR_ANNUAL_PRICE_ID` | Stripe → Products → Collector → annual price ID |
+| `STRIPE_BIBLIOPHILE_MONTHLY_PRICE_ID` | Stripe → Products → Bibliophile → monthly price ID |
+| `STRIPE_BIBLIOPHILE_ANNUAL_PRICE_ID` | Stripe → Products → Bibliophile → annual price ID |
+
+**External APIs**
+| Variable | Where to get it |
+|----------|----------------|
+| `GOOGLE_BOOKS_API_KEY` | Google Cloud Console → APIs & Services |
+| `ANTHROPIC_API_KEY` | console.anthropic.com |
+
+**Cloudinary**
+| Variable | Where to get it |
+|----------|----------------|
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary dashboard |
+| `CLOUDINARY_API_KEY` | Cloudinary dashboard |
+| `CLOUDINARY_API_SECRET` | Cloudinary dashboard |
+
+**App config**
+| Variable | Value |
+|----------|-------|
+| `NODE_ENV` | `production` |
+| `PORT` | `3001` |
+| `WEB_URL` | Your Vercel frontend URL (fill in after Vercel deploy) |
+
+### Step 4 — Verify Build Config
+- [ ] Railway auto-detects `railway.toml` — confirm it shows:
+  - Build: `pnpm install --frozen-lockfile && pnpm --filter db generate && pnpm --filter api build`
+  - Start: `node apps/api/dist/index.js`
+  - Health check: `/health`
+
+### Step 5 — Set Up Stripe Webhooks (after first deploy)
+Once Railway assigns a public URL (e.g. `https://your-app.up.railway.app`):
+
+- [ ] Stripe → Developers → Webhooks → **Add endpoint**
+  - URL: `https://your-app.up.railway.app/api/webhooks/stripe`
+  - Events: `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.payment_failed`, `account.updated`
+  - Copy signing secret → paste into `STRIPE_WEBHOOK_SECRET`
+- [ ] Stripe → Connect → Webhooks → **Add endpoint**
+  - URL: `https://your-app.up.railway.app/api/webhooks/stripe-connect`
+  - Events: `account.updated`
+  - Copy signing secret → paste into `STRIPE_CONNECT_WEBHOOK_SECRET`
+
+### Step 6 — Run Database Migrations
+```bash
+railway run pnpm db:migrate:deploy
+```
+
+### Step 7 — Verify
+- [ ] Visit `https://your-app.up.railway.app/health` → should return `200 OK`
+- [ ] After Vercel deploy: update `WEB_URL` in Railway variables to your Vercel domain
+
+> **Order matters:** Add DB → set vars → deploy → get URL → configure Stripe webhooks → paste signing secrets → run migrations
+
+---
+
 ## Frontend — Vercel
 
 ### Deploy commands
