@@ -116,35 +116,37 @@ railway run pnpm db:migrate:deploy
 
 ### Step 7 — Verify
 - [ ] Visit `https://your-app.up.railway.app/health` → should return `200 OK`
-- [ ] After Vercel deploy: update `WEB_URL` in Railway variables to your Vercel domain
+- [ ] After frontend deploys: update `WEB_URL` in the API service variables to your frontend Railway domain
 
-> **Order matters:** Add DB → set vars → deploy → get URL → configure Stripe webhooks → paste signing secrets → run migrations
+> **Order matters:** Add DB → set vars → deploy API → get API URL → deploy frontend → update `WEB_URL` → configure Stripe webhooks → run migrations
 
 ---
 
-## Frontend — Vercel
+## Frontend — Railway
 
-### Deploy commands
-```bash
-npm install -g vercel
-vercel login
-vercel --prod   # from repo root
-```
+The frontend runs as a second Railway service in the same project, built with Docker + nginx.
 
-### Required environment variables (set in Vercel dashboard)
-| Variable | Description |
-|----------|-------------|
-| VITE_API_URL | Railway API URL, e.g. https://your-app.railway.app |
-| VITE_CLERK_PUBLISHABLE_KEY | From Clerk dashboard -> API Keys |
-| VITE_SENTRY_DSN | From Sentry dashboard (optional) |
+### Step 1 — Add a second service
+- In your Railway project → **+ New** → **GitHub Repo** → same repo
+- Under **Settings** → **Build** → set **Dockerfile path** to `apps/web/Dockerfile`
 
-### Custom domain
-1. In Vercel dashboard -> your project -> Settings -> Domains
-2. Add your domain (e.g. bookshelf.app)
-3. Update DNS: add CNAME record pointing to `cname.vercel-dns.com`
-4. SSL certificate is provisioned automatically by Vercel
+### Step 2 — Set build variables
+These are **build-time** args (set under **Variables** in the frontend service):
 
-### Post-deploy steps
-1. Update `WEB_URL` in Railway to match your Vercel domain
-2. Update Clerk -> Allowed origins to include your domain
-3. Update Clerk -> Redirect URLs to include your domain
+| Variable | Value |
+|----------|-------|
+| `VITE_API_URL` | Your Railway API service URL, e.g. `https://api.yourdomain.com` |
+| `VITE_CLERK_PUBLISHABLE_KEY` | From Clerk dashboard → API Keys |
+
+> These are baked into the static build at compile time — not runtime env vars.
+
+### Step 3 — Custom domain
+- Frontend service → **Settings** → **Networking** → **Add Custom Domain**
+- Add your root domain, e.g. `yourdomain.com`
+- In Spaceship DNS: add a `CNAME` record for `@` pointing to the Railway-provided CNAME target
+- SSL is provisioned automatically by Railway
+
+### Step 4 — Post-deploy
+- [ ] Update `WEB_URL` in the API service to `https://yourdomain.com`
+- [ ] In Clerk dashboard → **Allowed Origins**: add `https://yourdomain.com`
+- [ ] In Clerk dashboard → **Redirect URLs**: add `https://yourdomain.com`
