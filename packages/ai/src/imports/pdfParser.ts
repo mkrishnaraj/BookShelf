@@ -1,4 +1,4 @@
-import type { ParsedBook } from './goodreadsParser'
+import type { ParsedBook } from './goodreadsParser.js'
 
 interface PdfInfo {
   Title?: string

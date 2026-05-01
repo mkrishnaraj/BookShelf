@@ -1,11 +1,11 @@
-import { Router } from 'express'
+import { Router, Request, Response, NextFunction } from 'express'
 import multer from 'multer'
 import { z } from 'zod'
 import rateLimit from 'express-rate-limit'
-import { prisma } from '../lib/prisma'
-import { getUserId } from '../middleware/auth'
-import { checkBookLimit } from '../middleware/planLimits'
-import { validateBody, validateParams, validateQuery } from '../middleware/validate'
+import { prisma } from '../lib/prisma.js'
+import { getUserId } from '../middleware/auth.js'
+import { checkBookLimit } from '../middleware/planLimits.js'
+import { validateBody, validateParams, validateQuery } from '../middleware/validate.js'
 import {
   enrichBook,
   calculateBookDimensions,
@@ -16,7 +16,7 @@ import {
   type ParsedBook,
 } from 'ai'
 
-const router = Router()
+const router: Router = Router()
 
 const searchRateLimit = rateLimit({ windowMs: 60 * 1000, max: 10, standardHeaders: true, legacyHeaders: false, message: { error: { code: 'RATE_LIMITED', message: 'Too many search requests. Please wait a minute.' } } })
 const importRateLimit = rateLimit({ windowMs: 60 * 1000, max: 3, standardHeaders: true, legacyHeaders: false, message: { error: { code: 'RATE_LIMITED', message: 'Too many import requests. Please wait a minute.' } } })

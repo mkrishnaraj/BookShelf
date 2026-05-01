@@ -45,7 +45,7 @@ import {
   createCheckoutSession,
   createPortalSession,
   constructWebhookEvent,
-} from '../services/stripeService'
+} from '../services/stripeService.js'
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 

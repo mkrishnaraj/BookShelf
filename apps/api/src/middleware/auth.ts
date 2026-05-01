@@ -1,9 +1,9 @@
 import { clerkMiddleware, getAuth } from '@clerk/express'
-import type { Request, Response, NextFunction } from 'express'
-import { prisma } from '../lib/prisma'
+import { Request, Response, NextFunction, RequestHandler } from 'express'
+import { prisma } from '../lib/prisma.js'
 
 // Clerk middleware that parses + validates JWT on every request
-export const clerkAuth = clerkMiddleware()
+export const clerkAuth: RequestHandler = clerkMiddleware() as RequestHandler
 
 /**
  * Strict auth guard — must come AFTER clerkMiddleware().

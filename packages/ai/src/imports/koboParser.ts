@@ -1,4 +1,4 @@
-import type { ParsedBook } from './goodreadsParser'
+import type { ParsedBook } from './goodreadsParser.js'
 
 /**
  * Minimal CSV parser for Kobo CSV exports (no external dependencies).

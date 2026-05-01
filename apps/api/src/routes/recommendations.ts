@@ -1,9 +1,9 @@
-import { Router } from 'express'
-import { prisma } from '../lib/prisma'
-import { getUserId } from '../middleware/auth'
+import { Router, Request, Response, NextFunction } from 'express'
+import { prisma } from '../lib/prisma.js'
+import { getUserId } from '../middleware/auth.js'
 import { getRecommendations } from 'ai'
 
-const router = Router()
+const router: Router = Router()
 
 // GET /api/v1/recommendations
 // Returns up to 10 book recommendations based on the user's top-rated shelf books.

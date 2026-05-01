@@ -1,11 +1,11 @@
-import { Router } from 'express'
+import { Router, Request, Response, NextFunction } from 'express'
 import { z } from 'zod'
 import { randomBytes } from 'crypto'
-import { prisma } from '../lib/prisma'
-import { getUserId } from '../middleware/auth'
-import { checkShelfLimit } from '../middleware/planLimits'
-import { validateBody, validateParams } from '../middleware/validate'
-import { generateShelfShareUrl } from '../services/shelfRenderer'
+import { prisma } from '../lib/prisma.js'
+import { getUserId } from '../middleware/auth.js'
+import { checkShelfLimit } from '../middleware/planLimits.js'
+import { validateBody, validateParams } from '../middleware/validate.js'
+import { generateShelfShareUrl } from '../services/shelfRenderer.js'
 
 function generateSlug(len = 10): string {
   return randomBytes(Math.ceil(len * 3 / 4))
@@ -13,7 +13,7 @@ function generateSlug(len = 10): string {
     .slice(0, len)
 }
 
-const router = Router()
+const router: Router = Router()
 
 // ─── Schemas ──────────────────────────────────────────────────────────────────
 

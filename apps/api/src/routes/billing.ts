@@ -1,11 +1,11 @@
-import { Router } from 'express'
+import { Router, Request, Response, NextFunction } from 'express'
 import { z } from 'zod'
-import { prisma } from '../lib/prisma'
-import { getUserId } from '../middleware/auth'
-import { validateBody } from '../middleware/validate'
-import { createCheckoutSession, createPortalSession } from '../services/stripeService'
+import { prisma } from '../lib/prisma.js'
+import { getUserId } from '../middleware/auth.js'
+import { validateBody } from '../middleware/validate.js'
+import { createCheckoutSession, createPortalSession } from '../services/stripeService.js'
 
-const router = Router()
+const router: Router = Router()
 
 // ─── Server-side price ID map — never trust price IDs from the client ─────────
 const PRICE_ID_MAP: Record<string, string | undefined> = {

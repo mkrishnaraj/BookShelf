@@ -1,10 +1,10 @@
-import { Router } from 'express'
+import { Router, Request, Response, NextFunction } from 'express'
 import { z } from 'zod'
-import { prisma } from '../lib/prisma'
-import { getUserId } from '../middleware/auth'
-import { validateBody, validateParams } from '../middleware/validate'
+import { prisma } from '../lib/prisma.js'
+import { getUserId } from '../middleware/auth.js'
+import { validateBody, validateParams } from '../middleware/validate.js'
 
-const router = Router()
+const router: Router = Router()
 
 // ─── Schemas ──────────────────────────────────────────────────────────────────
 

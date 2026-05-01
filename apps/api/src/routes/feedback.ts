@@ -1,9 +1,9 @@
-import { Router } from 'express'
+import { Router, Request, Response, NextFunction } from 'express'
 import { z } from 'zod'
-import { prisma } from '../lib/prisma'
-import { validateBody } from '../middleware/validate'
+import { prisma } from '../lib/prisma.js'
+import { validateBody } from '../middleware/validate.js'
 
-const router = Router()
+const router: Router = Router()
 
 const feedbackBody = z.object({
   rating: z.number().int().min(1).max(5),

@@ -70,8 +70,8 @@ vi.mock('cloudinary', () => ({ v2: { config: vi.fn(), uploader: { upload: vi.fn(
 
 // ─── Build test app ───────────────────────────────────────────────────────────
 import express from 'express'
-import statsRouter from '../routes/stats'
-import { requireAuth } from '../middleware/auth'
+import statsRouter from '../routes/stats.js'
+import { requireAuth } from '../middleware/auth.js'
 
 function buildTestApp() {
   const app = express()

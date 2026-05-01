@@ -42,7 +42,7 @@ vi.mock('../lib/prisma.js', () => ({
 }))
 
 // ─── Import after mocks ───────────────────────────────────────────────────────
-import { checkShelfLimit, requirePlan } from '../middleware/planLimits'
+import { checkShelfLimit, requirePlan } from '../middleware/planLimits.js'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

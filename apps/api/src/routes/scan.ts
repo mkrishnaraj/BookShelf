@@ -1,14 +1,14 @@
-import { Router } from 'express'
+import { Router, Request, Response, NextFunction } from 'express'
 import multer from 'multer'
 import rateLimit from 'express-rate-limit'
 import { z } from 'zod'
-import { prisma } from '../lib/prisma'
-import { getUserId } from '../middleware/auth'
-import { validateParams } from '../middleware/validate'
-import { identifyBookFromImage, identifyShelfFromImage } from '../services/scanService'
+import { prisma } from '../lib/prisma.js'
+import { getUserId } from '../middleware/auth.js'
+import { validateParams } from '../middleware/validate.js'
+import { identifyBookFromImage, identifyShelfFromImage } from '../services/scanService.js'
 import { enrichBook } from 'ai'
 
-const router = Router()
+const router: Router = Router()
 
 // ─── Multer ───────────────────────────────────────────────────────────────────
 

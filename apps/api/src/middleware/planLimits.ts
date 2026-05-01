@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express'
-import { prisma } from '../lib/prisma'
-import { getUserId } from './auth'
+import { prisma } from '../lib/prisma.js'
+import { getUserId } from './auth.js'
 import type { Plan, ShelfSize } from 'shared'
 import { PLAN_LIMITS, SHELF_CAPACITY } from 'shared'
 

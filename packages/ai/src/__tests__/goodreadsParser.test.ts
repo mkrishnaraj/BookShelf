@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { parseGoodreadsCSV } from '../imports/goodreadsParser'
+import { parseGoodreadsCSV } from '../imports/goodreadsParser.js'
 
 // Minimal Goodreads CSV header (24 columns as per the real export format)
 const CSV_HEADER =

@@ -1,8 +1,8 @@
-import { Router } from 'express'
+import { Router, Request, Response, NextFunction } from 'express'
 import type { Request, Response } from 'express'
-import { constructWebhookEvent, handleWebhookEvent, constructConnectWebhookEvent, handleConnectWebhookEvent } from '../services/stripeService'
+import { constructWebhookEvent, handleWebhookEvent, constructConnectWebhookEvent, handleConnectWebhookEvent } from '../services/stripeService.js'
 
-const router = Router()
+const router: Router = Router()
 
 // POST /api/webhooks/stripe — subscription lifecycle events
 // express.raw() applied at mount point in index.ts (before express.json)

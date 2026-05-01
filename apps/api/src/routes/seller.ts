@@ -1,14 +1,14 @@
-import { Router } from 'express'
-import { prisma } from '../lib/prisma'
-import { getUserId } from '../middleware/auth'
-import { requirePlan } from '../middleware/planLimits'
+import { Router, Request, Response, NextFunction } from 'express'
+import { prisma } from '../lib/prisma.js'
+import { getUserId } from '../middleware/auth.js'
+import { requirePlan } from '../middleware/planLimits.js'
 import {
   createConnectAccount,
   createAccountLink,
   getConnectAccount,
-} from '../services/connectService'
+} from '../services/connectService.js'
 
-const router = Router()
+const router: Router = Router()
 
 // ─── Routes ───────────────────────────────────────────────────────────────────
 

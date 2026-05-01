@@ -1,14 +1,14 @@
-import { Router } from 'express'
+import { Router, Request, Response, NextFunction } from 'express'
 import { z } from 'zod'
-import { prisma } from '../lib/prisma'
-import { getUserId } from '../middleware/auth'
-import { requirePlan } from '../middleware/planLimits'
-import { validateBody, validateParams, validateQuery } from '../middleware/validate'
-import { createMarketplaceCheckout } from '../services/connectService'
-import { COMMISSION_RATES } from '../services/stripeService'
+import { prisma } from '../lib/prisma.js'
+import { getUserId } from '../middleware/auth.js'
+import { requirePlan } from '../middleware/planLimits.js'
+import { validateBody, validateParams, validateQuery } from '../middleware/validate.js'
+import { createMarketplaceCheckout } from '../services/connectService.js'
+import { COMMISSION_RATES } from '../services/stripeService.js'
 import type { Plan } from 'shared'
 
-const router = Router()
+const router: Router = Router()
 
 // ─── Schemas ──────────────────────────────────────────────────────────────────
 
