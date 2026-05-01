@@ -1,6 +1,6 @@
 import { Router } from 'express'
-import { prisma } from '../lib/prisma.js'
-import { getUserId } from '../middleware/auth.js'
+import { prisma } from '../lib/prisma'
+import { getUserId } from '../middleware/auth'
 import { getRecommendations } from 'ai'
 
 const router = Router()

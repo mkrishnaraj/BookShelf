@@ -1,4 +1,4 @@
-import { prisma } from './prisma.js'
+import { prisma } from './prisma'
 
 type EventName = 'user.signup' | 'shelf.created' | 'book.added' | 'book.imported' | 'shelf.shared' | 'subscription.started'
 

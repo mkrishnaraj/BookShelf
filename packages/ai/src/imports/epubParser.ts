@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
-import type { ParsedBook } from './goodreadsParser.js'
+import type { ParsedBook } from './goodreadsParser'
 
 /**
  * Parse metadata from an EPUB file buffer.

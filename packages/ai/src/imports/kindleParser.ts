@@ -1,4 +1,4 @@
-import type { ParsedBook } from './goodreadsParser.js'
+import type { ParsedBook } from './goodreadsParser'
 
 interface KindleItem {
   title?: string

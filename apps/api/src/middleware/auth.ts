@@ -1,6 +1,6 @@
 import { clerkMiddleware, getAuth } from '@clerk/express'
 import type { Request, Response, NextFunction } from 'express'
-import { prisma } from '../lib/prisma.js'
+import { prisma } from '../lib/prisma'
 
 // Clerk middleware that parses + validates JWT on every request
 export const clerkAuth = clerkMiddleware()

@@ -1,5 +1,5 @@
 import axios from 'axios'
-import type { BookMetadata } from './googleBooks.js'
+import type { BookMetadata } from './googleBooks'
 
 const BASE_URL = 'https://openlibrary.org'
 const TIMEOUT_MS = 5000

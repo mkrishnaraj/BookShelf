@@ -1,4 +1,4 @@
-import { prisma } from '../lib/prisma.js'
+import { prisma } from '../lib/prisma'
 
 // Weekly digest: summarise each user's reading stats
 // Run this with node-cron or Railway cron job: 0 9 * * 1 (every Monday 9am)

@@ -1,12 +1,12 @@
 import { Router } from 'express'
-import { prisma } from '../lib/prisma.js'
-import { getUserId } from '../middleware/auth.js'
-import { requirePlan } from '../middleware/planLimits.js'
+import { prisma } from '../lib/prisma'
+import { getUserId } from '../middleware/auth'
+import { requirePlan } from '../middleware/planLimits'
 import {
   createConnectAccount,
   createAccountLink,
   getConnectAccount,
-} from '../services/connectService.js'
+} from '../services/connectService'
 
 const router = Router()
 

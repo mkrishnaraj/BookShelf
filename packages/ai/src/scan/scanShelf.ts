@@ -1,5 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk'
-import { bufferToBase64 } from './imageUtils.js'
+import { bufferToBase64 } from './imageUtils'
 
 export interface ShelfScanResult {
   detectedBooks: Array<{

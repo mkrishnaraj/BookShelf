@@ -81,8 +81,8 @@ vi.mock('cloudinary', () => ({
 
 // ─── Build a minimal test app ─────────────────────────────────────────────────
 import express from 'express'
-import shelvesRouter from '../routes/shelves.js'
-import { requireAuth } from '../middleware/auth.js'
+import shelvesRouter from '../routes/shelves'
+import { requireAuth } from '../middleware/auth'
 
 function buildTestApp() {
   const app = express()

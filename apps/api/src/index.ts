@@ -1,5 +1,5 @@
 import 'dotenv/config'
-import { initSentry } from './lib/sentry.js'
+import { initSentry } from './lib/sentry'
 initSentry()
 import express from 'express'
 import cors from 'cors'
@@ -9,32 +9,38 @@ import rateLimit from 'express-rate-limit'
 import { clerkMiddleware } from '@clerk/express'
 
 // Routers
-import shelvesRouter from './routes/shelves.js'
-import booksRouter from './routes/books.js'
-import usersRouter from './routes/users.js'
-import statsRouter from './routes/stats.js'
-import streaksRouter from './routes/streaks.js'
-import wishlistRouter from './routes/wishlist.js'
-import notebookRouter from './routes/notebook.js'
-import socialRouter from './routes/social.js'
-import billingRouter from './routes/billing.js'
-import sellerRouter from './routes/seller.js'
-import marketplaceRouter from './routes/marketplace.js'
-import scanRouter from './routes/scan.js'
-import webhooksRouter from './routes/webhooks.js'
-import recommendationsRouter from './routes/recommendations.js'
-import feedbackRouter from './routes/feedback.js'
+import shelvesRouter from './routes/shelves'
+import booksRouter from './routes/books'
+import usersRouter from './routes/users'
+import statsRouter from './routes/stats'
+import streaksRouter from './routes/streaks'
+import wishlistRouter from './routes/wishlist'
+import notebookRouter from './routes/notebook'
+import socialRouter from './routes/social'
+import billingRouter from './routes/billing'
+import sellerRouter from './routes/seller'
+import marketplaceRouter from './routes/marketplace'
+import scanRouter from './routes/scan'
+import webhooksRouter from './routes/webhooks'
+import recommendationsRouter from './routes/recommendations'
+import feedbackRouter from './routes/feedback'
 
 // Auth middleware
-import { requireAuth } from './middleware/auth.js'
+import { requireAuth } from './middleware/auth'
 
 const app = express()
-const PORT = process.env['PORT'] ?? 3001
+const PORT = process.env.PORT ?? 3001
+
+// ─── Health Check — MUST be first, before all middleware ─────────────────────
+
+app.get('/health', (_req, res) => {
+  res.json({ status: 'ok', version: '1.0.0', timestamp: new Date().toISOString() })
+})
 
 // ─── Security & Logging ───────────────────────────────────────────────────────
 
 app.use(helmet())
-app.use(cors({ origin: process.env['WEB_URL'] ?? 'http://localhost:5173', credentials: true }))
+app.use(cors({ origin: process.env.WEB_URL ?? 'http://localhost:5173', credentials: true }))
 app.use(morgan('dev'))
 
 // ─── Stripe Webhook — must use raw body BEFORE express.json() ─────────────────
@@ -63,19 +69,7 @@ app.use(
 
 // ─── Clerk Auth Middleware ────────────────────────────────────────────────────
 
-// Parses + verifies Clerk JWT on every request; does NOT block unauthenticated
-// requests here — individual route guards call requireAuth themselves.
 app.use(clerkMiddleware())
-
-// ─── Health Check (no auth) ───────────────────────────────────────────────────
-
-app.get('/health', (_req, res) => {
-  res.json({
-    status: 'ok',
-    version: process.env['npm_package_version'] ?? '1.0.0',
-    timestamp: new Date().toISOString(),
-  })
-})
 
 // ─── Public Routes (no auth) ──────────────────────────────────────────────────
 
@@ -83,43 +77,18 @@ app.use('/api/public', socialRouter)
 
 // ─── Protected API Routes ─────────────────────────────────────────────────────
 
-// Shelves
 app.use('/api/v1/shelves', requireAuth, shelvesRouter)
-
-// Books — router handles both /books/... and /shelves/:shelfId/books paths
 app.use('/api/v1', requireAuth, booksRouter)
-
-// Users
 app.use('/api/v1/users', requireAuth, usersRouter)
-
-// Stats
 app.use('/api/v1/stats', requireAuth, statsRouter)
-
-// Streaks
 app.use('/api/v1/streaks', requireAuth, streaksRouter)
-
-// Wishlist
 app.use('/api/v1/wishlist', requireAuth, wishlistRouter)
-
-// Notebook
 app.use('/api/v1/notebook', requireAuth, notebookRouter)
-
-// Billing
 app.use('/api/v1/billing', requireAuth, billingRouter)
-
-// Seller onboarding & dashboard
 app.use('/api/v1/seller', requireAuth, sellerRouter)
-
-// Marketplace (listings, orders)
 app.use('/api/v1/marketplace', requireAuth, marketplaceRouter)
-
-// Camera scan
 app.use('/api/v1/scan', requireAuth, scanRouter)
-
-// Recommendations
 app.use('/api/v1/recommendations', requireAuth, recommendationsRouter)
-
-// Feedback — no requireAuth, anonymous submissions accepted
 app.use('/api/v1/feedback', feedbackRouter)
 
 // ─── 404 Handler ──────────────────────────────────────────────────────────────
@@ -138,7 +107,7 @@ app.use((err: Error, _req: express.Request, res: express.Response, _next: expres
 // ─── Start ────────────────────────────────────────────────────────────────────
 
 app.listen(PORT, () => {
-  console.log(`API server running on http://localhost:${PORT}`)
+  console.log('API running on port ' + PORT)
 })
 
 export default app

@@ -1,4 +1,4 @@
-import type { ParsedBook } from './goodreadsParser.js'
+import type { ParsedBook } from './goodreadsParser'
 
 function parseCSVLine(line: string): string[] {
   const fields: string[] = []

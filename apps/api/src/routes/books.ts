@@ -2,10 +2,10 @@ import { Router } from 'express'
 import multer from 'multer'
 import { z } from 'zod'
 import rateLimit from 'express-rate-limit'
-import { prisma } from '../lib/prisma.js'
-import { getUserId } from '../middleware/auth.js'
-import { checkBookLimit } from '../middleware/planLimits.js'
-import { validateBody, validateParams, validateQuery } from '../middleware/validate.js'
+import { prisma } from '../lib/prisma'
+import { getUserId } from '../middleware/auth'
+import { checkBookLimit } from '../middleware/planLimits'
+import { validateBody, validateParams, validateQuery } from '../middleware/validate'
 import {
   enrichBook,
   calculateBookDimensions,

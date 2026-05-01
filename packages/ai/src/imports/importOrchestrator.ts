@@ -1,10 +1,10 @@
-import { parseGoodreadsCSV, type ParsedBook } from './goodreadsParser.js'
-import { parseKindleExport } from './kindleParser.js'
-import { parseGooglePlayExport } from './googlePlayParser.js'
-import { parseKoboCSV } from './koboParser.js'
-import { parseIBooksCSV } from './iBooksParser.js'
-import { parseEpub } from './epubParser.js'
-import { parsePDF } from './pdfParser.js'
+import { parseGoodreadsCSV, type ParsedBook } from './goodreadsParser'
+import { parseKindleExport } from './kindleParser'
+import { parseGooglePlayExport } from './googlePlayParser'
+import { parseKoboCSV } from './koboParser'
+import { parseIBooksCSV } from './iBooksParser'
+import { parseEpub } from './epubParser'
+import { parsePDF } from './pdfParser'
 
 export type ImportFormat =
   | 'goodreads'

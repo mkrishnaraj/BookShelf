@@ -1,8 +1,8 @@
 import { Router } from 'express'
 import { z } from 'zod'
-import { prisma } from '../lib/prisma.js'
-import { getUserId } from '../middleware/auth.js'
-import { validateQuery } from '../middleware/validate.js'
+import { prisma } from '../lib/prisma'
+import { getUserId } from '../middleware/auth'
+import { validateQuery } from '../middleware/validate'
 
 const router = Router()
 

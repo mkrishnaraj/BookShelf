@@ -1,10 +1,10 @@
-import { searchGoogleBooks, getBookByISBN } from './googleBooks.js'
-import { searchOpenLibrary, getOpenLibraryBook } from './openLibrary.js'
-import { calculateBookDimensions } from './bookDimensions.js'
-import { extractCoverColors } from './coverColor.js'
+import { searchGoogleBooks, getBookByISBN } from './googleBooks'
+import { searchOpenLibrary, getOpenLibraryBook } from './openLibrary'
+import { calculateBookDimensions } from './bookDimensions'
+import { extractCoverColors } from './coverColor'
 
-export type { BookMetadata } from './googleBooks.js'
-import type { BookMetadata } from './googleBooks.js'
+export type { BookMetadata } from './googleBooks'
+import type { BookMetadata } from './googleBooks'
 
 // In-memory cache: isbn or "title|author" → enriched metadata
 const cache = new Map<string, BookMetadata>()

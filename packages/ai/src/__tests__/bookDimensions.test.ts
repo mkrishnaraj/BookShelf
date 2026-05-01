@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { calculateBookDimensions } from '../enrichment/bookDimensions.js'
+import { calculateBookDimensions } from '../enrichment/bookDimensions'
 
 describe('calculateBookDimensions', () => {
   // Constants mirrored from the source for clarity
