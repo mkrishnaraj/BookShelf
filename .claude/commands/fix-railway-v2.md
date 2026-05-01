@@ -344,7 +344,113 @@ ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", "apps/api/dist/index.js"]
 ```
 
-## Fix 18 — Commit and push everything
+## Fix 18 — Fix epubParser.ts (epub2 API change)
+
+In `packages/ai/src/imports/epubParser.ts`:
+
+The `epub2` package does not have `createAsync`. Replace the epub parsing implementation entirely:
+
+```typescript
+import EPub from 'epub2'
+import { ParsedBook } from './importOrchestrator.js'
+
+export async function parseEpub(buffer: Buffer): Promise<ParsedBook | null> {
+  return new Promise((resolve) => {
+    try {
+      // Write buffer to temp file since epub2 requires a file path
+      const os = require('os')
+      const fs = require('fs')
+      const path = require('path')
+      const tmpFile = path.join(os.tmpdir(), `epub_${Date.now()}.epub`)
+      fs.writeFileSync(tmpFile, buffer)
+
+      const epub = new EPub(tmpFile)
+      epub.on('end', () => {
+        fs.unlinkSync(tmpFile)
+        resolve({
+          title: epub.metadata.title || undefined,
+          author: epub.metadata.creator || undefined,
+          isbn13: epub.metadata.ISBN || undefined,
+          source: 'FILE_UPLOAD' as any
+        })
+      })
+      epub.on('error', () => {
+        try { fs.unlinkSync(tmpFile) } catch {}
+        resolve(null)
+      })
+      epub.parse()
+    } catch {
+      resolve(null)
+    }
+  })
+}
+
+export async function parseEpubZip(buffer: Buffer): Promise<ParsedBook[]> {
+  const book = await parseEpub(buffer)
+  return book ? [book] : []
+}
+```
+
+Also add `fs`, `os`, `path` to the ai package dependencies in `packages/ai/package.json` if not present — these are Node built-ins so no install needed.
+
+## Fix 19 — Fix web tsconfig.json (rootDir pointing to wrong location)
+
+The `tsconfig.base.json` sets `"rootDir": "./src"` which conflicts with the web app.
+The web tsconfig must NOT extend the base rootDir.
+
+Overwrite `apps/web/tsconfig.json` with exactly this:
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": false,
+    "noImplicitAny": false
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}
+```
+
+Note: this does NOT extend `tsconfig.base.json` — the web app uses Vite/ESNext which needs completely different settings from the Node.js backend. The base tsconfig is only for Node packages.
+
+Also check if there is a `tsconfig.node.json` in `apps/web/` — if so keep it as-is.
+
+## Fix 20 — Remove rootDir from tsconfig.base.json
+
+The `rootDir` in `tsconfig.base.json` was causing the web rootDir conflict. Update `tsconfig.base.json` to remove `rootDir` and `outDir` (each package sets these itself):
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "Node16",
+    "moduleResolution": "Node16",
+    "strict": false,
+    "noImplicitAny": false,
+    "exactOptionalPropertyTypes": false,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "resolveJsonModule": true
+  }
+}
+```
+
+## Fix 21 — Commit and push everything
 
 ```bash
 git add -A
@@ -355,9 +461,13 @@ git push
 ## Success criteria
 
 The build succeeds when:
+- `pnpm --filter ai build` completes with zero errors
+- `pnpm --filter web build` completes with zero errors
 - `pnpm --filter api build` completes with zero TypeScript errors
 - All route files have explicit `Router` type annotations
-- All local imports have `.js` extensions
+- All local imports in api have `.js` extensions
 - Package imports (`'db'`, `'shared'`, `'ai'`) have no `.js` extension
 - Health endpoint is first route in index.ts
 - PORT uses `process.env.PORT`
+- Web Dockerfile uses `node:20-alpine` not nginx
+- Web tsconfig does NOT extend tsconfig.base.json
